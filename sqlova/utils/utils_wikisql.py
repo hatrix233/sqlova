@@ -41,18 +41,18 @@ def load_wikisql(path_wikisql, toy_model, toy_size, bert=False, no_w2i=False, no
     return train_data, train_table, dev_data, dev_table, w2i, wemb
 
 
-def load_wikisql_data(path_wikisql, mode='train', toy_model=False, toy_size=10, no_hs_tok=False, aug=False):
+def load_wikisql_data(path_wikisql, mode='train', toy_model=False, toy_size=100, no_hs_tok=False, aug=False):
     """ Load training sets
     """
     if aug:
         mode = f"aug.{mode}"
         print('Augmented data is loaded!')
 
-    path_sql = os.path.join(path_wikisql, mode+'_tok.jsonl')
+    path_sql = os.path.join(path_wikisql, mode+'_tok.json')
     if no_hs_tok:
-        path_table = os.path.join(path_wikisql, mode + '.tables.jsonl')
+        path_table = os.path.join(path_wikisql, mode + '.tables.json')
     else:
-        path_table = os.path.join(path_wikisql, mode+'_tok.tables.jsonl')
+        path_table = os.path.join(path_wikisql, mode+'_tok.tables.json')
 
     data = []
     table = {}
@@ -94,7 +94,7 @@ def get_loader_wikisql(data_train, data_dev, bS, shuffle_train=True, shuffle_dev
         batch_size=bS,
         dataset=data_train,
         shuffle=shuffle_train,
-        num_workers=4,
+        num_workers=8,
         collate_fn=lambda x: x  # now dictionary values are not merged!
     )
 
@@ -102,7 +102,7 @@ def get_loader_wikisql(data_train, data_dev, bS, shuffle_train=True, shuffle_dev
         batch_size=bS,
         dataset=data_dev,
         shuffle=shuffle_dev,
-        num_workers=4,
+        num_workers=8,
         collate_fn=lambda x: x  # now dictionary values are not merged!
     )
 
@@ -111,7 +111,7 @@ def get_loader_wikisql(data_train, data_dev, bS, shuffle_train=True, shuffle_dev
 
 def get_fields_1(t1, tables, no_hs_t=False, no_sql_t=False):
     nlu1 = t1['question']
-    nlu_t1 = t1['question_tok']
+#     nlu_t1 = t1['question_tok']
     tid1 = t1['table_id']
     sql_i1 = t1['sql']
     sql_q1 = t1['query']
@@ -127,7 +127,9 @@ def get_fields_1(t1, tables, no_hs_t=False, no_sql_t=False):
         hs_t1 = []
     hs1 = tb1['header']
 
-    return nlu1, nlu_t1, tid1, sql_i1, sql_q1, sql_t1, tb1, hs_t1, hs1
+#     return nlu1, nlu_t1, tid1, sql_i1, sql_q1, sql_t1, tb1, hs_t1, hs1
+    return nlu1, tid1, sql_i1, sql_q1, sql_t1, tb1, hs_t1, hs1
+
 
 def get_fields(t1s, tables, no_hs_t=False, no_sql_t=False):
 
@@ -139,7 +141,7 @@ def get_fields(t1s, tables, no_hs_t=False, no_sql_t=False):
             nlu1, nlu_t1, tid1, sql_i1, sql_q1, sql_t1, tb1, hs_t1, hs1 = get_fields_1(t1, tables, no_hs_t, no_sql_t)
 
         nlu.append(nlu1)
-        nlu_t.append(nlu_t1)
+#         nlu_t.append(nlu_t1)
         tid.append(tid1)
         sql_i.append(sql_i1)
         sql_q.append(sql_q1)
@@ -149,7 +151,8 @@ def get_fields(t1s, tables, no_hs_t=False, no_sql_t=False):
         hs_t.append(hs_t1)
         hs.append(hs1)
 
-    return nlu, nlu_t, sql_i, sql_q, sql_t, tb, hs_t, hs
+#     return nlu, nlu_t, sql_i, sql_q, sql_t, tb, hs_t, hs
+    return nlu, sql_i, sql_q, sql_t, tb, hs_t, hs
 
 
 # Embedding -------------------------------------------------------------------------
@@ -179,7 +182,7 @@ def words_to_idx(words, w2i, no_BE=False):
     w2i =  [ B x max_seq_len, 1]
     wemb = [B x max_seq_len, dim]
 
-    - Zero-padded when word is not available (teated as <UNK>)
+    - Zero-padded when word is not available (treated as <UNK>)
     """
     bS = len(words)
     l = torch.zeros(bS, dtype=torch.long).to(device) # length of the seq. of words.
@@ -202,7 +205,7 @@ def words_to_idx(words, w2i, no_BE=False):
     return w2i_l, l
 
 def hs_to_idx(hs_t, w2i, no_BE=False):
-    """ Zero-padded when word is not available (teated as <UNK>)
+    """ Zero-padded when word is not available (treated as <UNK>)
     Treat each "header tokens" as if they are NL-utterance tokens.
     """
 
