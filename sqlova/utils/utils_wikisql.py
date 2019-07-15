@@ -204,7 +204,7 @@ def words_to_idx(words, w2i, no_BE=False):
 
     return w2i_l, l
 
-def hs_to_idx(hs_t, w2i, no_BE=False):
+def hs_to_idx(hs_t, w2i, no_BE=False): # Doesn't seem like this was used in training
     """ Zero-padded when word is not available (treated as <UNK>)
     Treat each "header tokens" as if they are NL-utterance tokens.
     """
@@ -338,25 +338,29 @@ def get_wv1(conds):
 
 def get_g(sql_i):
     """ for backward compatibility, separated with get_g"""
+    g_sn = []
     g_sc = []
     g_sa = []
     g_wn = []
     g_wc = []
     g_wo = []
     g_wv = []
+    g_wr = []
     for b, psql_i1 in enumerate(sql_i):
-        g_sc.append( psql_i1["sel"] )
-        g_sa.append( psql_i1["agg"])
+        g_sn.append(len(psql_i1["sel"]))
+        g_sc.append(psql_i1["sel"])
+        g_sa.append(psql_i1["agg"])
+        g_wr.append(psql_i1['cond_conn_op'])
 
         conds = psql_i1['conds']
         if not psql_i1["agg"] < 0:
-            g_wn.append( len( conds ) )
-            g_wc.append( get_wc1(conds) )
-            g_wo.append( get_wo1(conds) )
-            g_wv.append( get_wv1(conds) )
+            g_wn.append(len(conds))
+            g_wc.append(get_wc1(conds))
+            g_wo.append(get_wo1(conds))
+            g_wv.append(get_wv1(conds))
         else:
             raise EnvironmentError
-    return g_sc, g_sa, g_wn, g_wc, g_wo, g_wv
+    return g_sn, g_sc, g_sa, g_wn, g_wc, g_wo, g_wv, g_wr
 
 def get_g_wvi_corenlp(t):
     g_wvi_corenlp = []
